@@ -107,12 +107,13 @@ public class PanelRetirarVehiculo extends javax.swing.JPanel {
             Calendar cal  = Calendar.getInstance();
             Date date = cal.getTime();
             String fechaHora = dateFormat.format(date);
+                      
         try {
             // TODO add your handling code here:
 
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost/bdparqueadero","root","");
-            Statement stat = con.createStatement();
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/ProyectoParqueadero", "root", "Orion1");
+            Statement stat = conexion.createStatement();
             ResultSet rs = stat.executeQuery("SELECT horaentrada,tipovehiculo FROM vehiculos WHERE placa='"+tfPlacaRetiro.getText()+"' AND estado='Disponible'");
             rs.first();
             String horaSalida = rs.getString(1);

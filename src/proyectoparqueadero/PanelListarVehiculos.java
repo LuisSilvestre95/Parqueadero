@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package proyectoparqueadero;
 
 import java.sql.Connection;
@@ -242,9 +237,9 @@ public class PanelListarVehiculos extends javax.swing.JPanel {
         try {
             // TODO add your handling code here:
 
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost/bdparqueadero", "root", "");
-            Statement stat = con.createStatement();
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/ProyectoParqueadero", "root", "Orion1");
+            Statement stat = conexion.createStatement();
             consulta = "SELECT * FROM vehiculos WHERE estado='" + estado + "' AND tipovehiculo LIKE'%" + tipoVehiculo + "%' AND placa LIKE '%" + tfPlaca.getText() + "%' AND propietario LIKE '%" + tfPropietario.getText() + "%' AND horaentrada LIKE '" + fecha + "%'";
             System.out.println(consulta);
             ResultSet rs = stat.executeQuery(consulta);
@@ -257,7 +252,7 @@ public class PanelListarVehiculos extends javax.swing.JPanel {
                     horasalida = "No ha salido";
                     pago = "0";
                 } else {
-                    horasalida = rs.getString(6).substring(10).substring(0,6);
+                    horasalida = rs.getString(6).substring(10).substring(0, 6);
                     pago = rs.getString(7);
                 }
                 String[] fila = {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5).substring(10).substring(0, 6), horasalida, "$" + pago};
@@ -276,12 +271,13 @@ public class PanelListarVehiculos extends javax.swing.JPanel {
     }//GEN-LAST:event_rbFueraParqActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    
         try {
             // TODO add your handling code here:
 
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost/bdparqueadero", "root", "");
-            Statement stat = con.createStatement();
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/ProyectoParqueadero", "root", "Orion1");
+            Statement stat = conexion.createStatement();
             consulta = "SELECT SUM(valorpagado)FROM vehiculos WHERE estado='" + estado + "' AND tipovehiculo LIKE'%" + tipoVehiculo + "%' AND placa LIKE '%" + tfPlaca.getText() + "%' AND propietario LIKE '%" + tfPropietario.getText() + "%' AND horasalida LIKE '" + fecha + "%'";
             ResultSet rs = stat.executeQuery(consulta);
             rs.first();

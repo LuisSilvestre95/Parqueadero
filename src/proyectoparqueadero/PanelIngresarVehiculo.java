@@ -1,15 +1,18 @@
 package proyectoparqueadero;
 
+import com.itextpdf.kernel.PdfException;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
@@ -33,7 +36,7 @@ public class PanelIngresarVehiculo extends javax.swing.JPanel {
         initComponents();
 
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(PanelIngresarVehiculo.class.getName()).log(Level.SEVERE, null, ex);
 
@@ -143,79 +146,69 @@ public class PanelIngresarVehiculo extends javax.swing.JPanel {
 
     private void button1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button1ActionPerformed
 
-        String clasevehiculo = "";
+        String claseVehiculo = "";
         if (rbAuto.isSelected()) {
-            clasevehiculo = "Automovil";
+            claseVehiculo = "Automovil";
         }
         if (rbMoto.isSelected()) {
-            clasevehiculo = "Motocicleta";
+            claseVehiculo = "Motocicleta";
         }
 
-        try {
-            Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost/ProyectoParqueadero", "root", "Orion1");
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Calendar cal = Calendar.getInstance();
-            Date date = cal.getTime();
-            fechaHora = dateFormat.format(date);
-            System.out.print(dateFormat.format(date));
-            Statement stat = conexion.createStatement();
-            String sql = "INSERT INTO vehiculos (placa, propietario,tipovehiculo,horaentrada,estado) VALUES ('" + tfPlaca.getText() + "','" + tfPropietario.getText() + "','" + clasevehiculo + "','" + fechaHora + "','Disponible')";
-            stat.executeUpdate(sql);
-            JOptionPane.showMessageDialog(null, "El vehiculo se registro exitosamente");
+        try (Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/ProyectoParqueadero", "root", "Orion1")) {
+            // Insertar datos en la base de datos usando una consulta preparada
+            String sql = "INSERT INTO vehiculos (Placa, Propietario, Tipo_Vehiculo, Hora_Entrada, Estado) VALUES (?, ?, ?, ?, 'Disponible')";
+            try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+                statement.setString(1, tfPlaca.getText());
+                statement.setString(2, tfPropietario.getText());
+                statement.setString(3, claseVehiculo);
+                statement.setString(4, fechaHora);
+
+                int filasInsertadas = statement.executeUpdate();
+                if (filasInsertadas > 0) {
+                    JOptionPane.showMessageDialog(null, "El vehiculo se registró exitosamente");
+                } else {
+                    JOptionPane.showMessageDialog(null, "No se pudo registrar el vehiculo");
+                }
+            }
 
         } catch (SQLException ex) {
             Logger.getLogger(PanelIngresarVehiculo.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        // Crear el archivo PDF
         String dest = "C:/reportes/sample.pdf";
         try {
-
             PdfWriter writer = new PdfWriter(dest);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc, PageSize.A5);
             pdfDoc.addNewPage();
 
-            //Paragraph para = new Paragraph("Recibo Parqueadero").setBold();
-            //para.setBorder(Border.NO_BORDER);
-            //para.setBold();
             Paragraph para1 = new Paragraph("Placa vehiculo: " + tfPlaca.getText());
             Paragraph para2 = new Paragraph("Nombre del propietario: " + tfPropietario.getText());
             Paragraph para3 = new Paragraph("Hora de ingreso: " + fechaHora);
 
-            //document.add(para);
             document.add(para1);
             document.add(para2);
             document.add(para3);
             document.close();
             System.out.println("PDF Created");
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PanelIngresarVehiculo.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PanelIngresarVehiculo.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        try {
-
-            if ((new File("c:\\reportes/sample.pdf")).exists()) {
-
-                Process p = Runtime
-                        .getRuntime()
-                        .exec("rundll32 url.dll,FileProtocolHandler c:\\reportes/sample.pdf");
-                p.waitFor();
-
+            // Abrir el archivo PDF
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                File pdfFile = new File(dest);
+                if (pdfFile.exists()) {
+                    desktop.open(pdfFile);
+                } else {
+                    System.out.println("File does not exist");
+                }
             } else {
-
-                System.out.println("File is not exists");
-
+                System.out.println("Desktop not supported");
             }
 
-            System.out.println("Done");
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException | PdfException  ex) {
+            Logger.getLogger(PanelIngresarVehiculo.class.getName()).log(Level.SEVERE, null, ex);
         }
-
 
     }//GEN-LAST:event_button1ActionPerformed
 
